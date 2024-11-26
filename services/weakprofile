@@ -1,0 +1,19 @@
+config:
+  limits.cpu: "1"
+  limits.memory: 100MB
+description: ""
+devices:
+  eth0:
+    limits.egress: 1Mbit
+    limits.ingress: 1Mbit
+    name: eth0
+    network: incusbr0
+    type: nic
+  root:
+    path: /
+    pool: default
+    type: disk
+name: weak
+used_by:
+- /1.0/instances/temperatureC
+project: default

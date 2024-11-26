@@ -1,0 +1,58 @@
+<!-- Local rules -->
+
+<!-- Modify it at your will. -->
+<!-- Copyright (C) 2015, Wazuh Inc. -->
+
+<!-- Example -->
+<group name="local,syslog,sshd,">
+
+  <!--
+  Dec 10 01:02:02 host sshd[1234]: Failed none for root from 1.1.1.1 port 1066 ssh2
+  -->
+  <rule id="100001" level="5">
+    <if_sid>5716</if_sid>
+    <srcip>1.1.1.1</srcip>
+    <description>sshd: authentication failed from IP 1.1.1.1.</description>
+    <group>authentication_failed,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+  </rule>
+
+</group>
+<group name="web,accesslog,">
+  <rule id="100003" level="5" overwrite="yes">
+  
+    <if_sid>31101</if_sid>
+    <match>POST /auth/login HTTP/1.1" 401</match>   <!-- Match any request to /auth/login -->
+    <description>Request failed to /auth/login</description>
+    <group>attack,pci_dss_6.5,pci_dss_11.4,gdpr_IV_35.7.d,nist_800_53_SA.11,nist_800_53_SI.4,tsc_CC6.6,tsc_CC7.1,tsc_CC8.1,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+</group>
+
+<group name="attack,">
+  <rule id="100004" level="10" frequency="3" timeframe="10">
+    <if_matched_sid>100003</if_matched_sid>
+    <description>Brute Force attack</description>
+    <group>web,accesslog,</group>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+</group>
+
+<group name="web,accesslog,">
+  <rule id="100005" level="5" overwrite="yes">
+
+    <if_sid>31101</if_sid>
+    <match>POST /botnetattack/10.151.101.153:5003 HTTP/1.1" 400</match>   <!-- Match any request to /auth/login -->
+    <description>Botnet attack on the temperatureC service</description>
+    <group>attack,pci_dss_6.5,pci_dss_11.4,gdpr_IV_35.7.d,nist_800_53_SA.11,nist_800_53_SI.4,tsc_CC6.6,tsc_CC7.1,tsc_CC8.1,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+</group>
+
+
+<group name="attack,">
+  <rule id="100100" level="10">
+    <if_group>web|attack|attacks</if_group>
+    <list field="srcip" lookup="address_match_key">etc/lists/blacklist-alienvault</list>
+    <description>IP address found in AlienVault reputation database.</description>
+  </rule>
+</group>
